@@ -12,6 +12,10 @@ interface Options {
      */
     metadata?: object;
 
+    chunkSize?: number;
+
+    requestPayloadSize?: number;
+
     /**
      * A function called once an error appears.
      * @param error and Error instance

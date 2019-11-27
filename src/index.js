@@ -5,7 +5,9 @@ const tusEventEmitter = new NativeEventEmitter(RNTusClient);
 
 const defaultOptions = {
     headers: {},
-    metadata: {}
+    metadata: {},
+    chunkSize: 1024,
+    requestPayloadSize: 10 * 1024 * 1024
 };
 
 /** Class representing a tus upload */
@@ -75,8 +77,8 @@ class Upload {
 
     createUpload() {
         return new Promise((resolve, reject) => {
-            const { metadata, headers, endpoint } = this.options;
-            const settings = { metadata, headers, endpoint };
+            const { metadata, headers, endpoint, chunkSize, requestPayloadSize } = this.options;
+            const settings = { metadata, headers, endpoint, chunkSize, requestPayloadSize };
             RNTusClient.createUpload(this.file, settings, (uploadId, errorMessage) => {
                 this.uploadId = uploadId;
                 if (uploadId == null) {
