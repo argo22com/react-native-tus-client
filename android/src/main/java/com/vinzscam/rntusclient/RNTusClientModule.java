@@ -81,13 +81,35 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void resume(String uploadId, Callback callback) {
+    public void resume(String uploadId, String fileUrl, ReadableMap options, Callback callback) {
         TusRunnable executor = this.executorsMap.get(uploadId);
         if (executor != null) {
             pool.submit(executor);
             callback.invoke(true);
         } else {
-            callback.invoke(false);
+            try {
+                // Recreate the executor
+                String endpoint = options.getString("endpoint");
+                int chunkSize = options.getInt("chunkSize");
+                int requestPayloadSize = options.getInt("requestPayloadSize");
+                Map<String, Object> rawHeaders = options.getMap("headers").toHashMap();
+                Map<String, Object> rawMetadata = options.getMap("metadata").toHashMap();
+
+                Map<String, String> metadata = new HashMap<>();
+                for (String key : rawMetadata.keySet()) {
+                    metadata.put(key, String.valueOf(rawMetadata.get(key)));
+                }
+                Map<String, String> headers = new HashMap<>();
+                for (String key : rawHeaders.keySet()) {
+                    headers.put(key, String.valueOf(rawHeaders.get(key)));
+                }
+                TusRunnable newExecutor = new TusRunnable(fileUrl, uploadId, endpoint, metadata, headers, chunkSize, requestPayloadSize);
+                this.executorsMap.put(uploadId, newExecutor);
+                pool.submit(newExecutor);
+                callback.invoke(true);
+            } catch (FileNotFoundException | MalformedURLException e) {
+                callback.invoke(false);
+            }
         }
     }
 
@@ -160,7 +182,7 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
             } while (uploader.uploadChunk() > -1 && !shouldFinish);
 
             progressTicker.cancel();
-            sendProgressEvent(upload.getSize(), upload.getSize());
+            sendProgressEvent(upload.getSize(), uploader.getOffset());
             uploader.finish();
         }
 

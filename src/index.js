@@ -16,7 +16,7 @@ class Upload {
   /**
      *
      * @param file The file absolute path.
-     * @param settings The options argument used to setup your tus upload.
+     * @param options The options argument used to setup your tus upload.
      */
     constructor(file, options) {
         this.subscriptions = [];
@@ -59,9 +59,14 @@ class Upload {
     }
 
     resume() {
-        RNTusClient.resume(this.uploadId, (hasBeenResumed) => {
+        const { metadata, headers, endpoint, chunkSize, requestPayloadSize } = this.options;
+        const settings = { metadata, headers, endpoint, chunkSize, requestPayloadSize };
+        this.unsubscribe();
+        RNTusClient.resume(this.uploadId, this.file, settings, (hasBeenResumed) => {
             if (!hasBeenResumed) {
                 this.emitError(new Error('Error while resuming the upload'));
+            } else {
+                this.subscribe();
             }
         });
     }
