@@ -122,7 +122,7 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
             }
             callback.invoke((Object) null);
         } catch (IOException | ProtocolException e) {
-            callback.invoke(e);
+            callback.invoke(e.toString());
         }
     }
 
