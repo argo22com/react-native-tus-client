@@ -201,11 +201,11 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
             if (isRunning) {
                 shouldFinish = true;
             } else {
-                if (uploader != null) {
-                    uploader.finish();
-                }
                 if (progressTicker != null) {
                     progressTicker.cancel();
+                }
+                if (uploader != null) {
+                    uploader.finish();
                 }
             }
         }
@@ -223,6 +223,9 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                         .emit(ON_SUCCESS, params);
             } catch (ProtocolException | IOException e) {
+                if (progressTicker != null) {
+                    progressTicker.cancel();
+                }
                 WritableMap params = Arguments.createMap();
                 params.putString("uploadId", uploadId);
                 params.putString("error", e.toString());
