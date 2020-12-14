@@ -1,6 +1,7 @@
 package com.vinzscam.rntusclient;
 
 import android.content.SharedPreferences;
+import android.net.Uri;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
@@ -11,7 +12,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.tus.android.client.TusAndroidUpload;
 import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.ProtocolException;
 import io.tus.java.client.TusClient;
@@ -156,8 +157,8 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
             client.enableResuming(new TusPreferencesURLStore(pref));
             client.setHeaders(headers);
 
-            File file = new File(fileUrl);
-            upload = new TusUpload((file));
+            Uri uri = Uri.parse(fileUrl);
+            upload = new TusAndroidUpload(uri, reactContext);
             upload.setMetadata(metadata);
 
             shouldFinish = false;
