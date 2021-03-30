@@ -1,7 +1,9 @@
 package com.vinzscam.rntusclient;
 
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
@@ -12,9 +14,11 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +38,7 @@ import io.tus.java.client.TusUploader;
 
 public class RNTusClientModule extends ReactContextBaseJavaModule {
 
+    public static final String TAG = "RNTusClient";
     private final String ON_ERROR = "onError";
     private final String ON_SUCCESS = "onSuccess";
     private final String ON_PROGRESS = "onProgress";
@@ -158,7 +163,18 @@ public class RNTusClientModule extends ReactContextBaseJavaModule {
             client.setHeaders(headers);
 
             Uri uri = Uri.parse(fileUrl);
-            upload = new TusAndroidUpload(uri, reactContext);
+            Log.d(TAG, "Uri: " + uri);
+
+
+            if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+                Log.d(TAG, "Creating TusAndroidUpload");
+                upload = new TusAndroidUpload(uri, reactContext);
+            } else {
+                Log.d(TAG, "Creating generic TusUpload");
+                URI javaUri = URI.create(fileUrl);
+                upload = new TusUpload(new File(javaUri));
+            }
+
             upload.setMetadata(metadata);
 
             shouldFinish = false;
